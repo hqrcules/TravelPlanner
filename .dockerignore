@@ -1,0 +1,17 @@
+.venv
+.uv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+tests
+.git
+.gitignore
+.env
+.env.*
+*.db
+*.sqlite*
+postman
