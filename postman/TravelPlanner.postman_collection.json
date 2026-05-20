@@ -1,0 +1,190 @@
+{
+  "info": {
+    "name": "Travel Planner",
+    "_postman_id": "tp-collection-0001",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Endpoints for the Travel Planner backend."
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      { "key": "username", "value": "{{basic_user}}", "type": "string" },
+      { "key": "password", "value": "{{basic_pass}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "basic_user", "value": "admin" },
+    { "key": "basic_pass", "value": "changeme" },
+    { "key": "project_id", "value": "" },
+    { "key": "place_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] }
+      }
+    },
+    {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "List projects",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects?limit=20&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" },
+                { "key": "status", "value": "planning", "disabled": true },
+                { "key": "search", "value": "berlin", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('project_id', pm.response.json().id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Berlin Trip\",\n  \"description\": \"Long weekend\",\n  \"start_date\": \"2026-06-01\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects"]
+            }
+          }
+        },
+        {
+          "name": "Get project",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update project",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated notes\",\n  \"status\": \"in_progress\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete project",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Places",
+      "item": [
+        {
+          "name": "List places",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}/places",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}", "places"]
+            }
+          }
+        },
+        {
+          "name": "Add place",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('place_id', pm.response.json().id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_id\": \"27992\",\n  \"notes\": \"Must visit at sunset\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}/places",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}", "places"]
+            }
+          }
+        },
+        {
+          "name": "Mark visited",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visited\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}/places/{{place_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}", "places", "{{place_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Remove place",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/{{project_id}}/places/{{place_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "{{project_id}}", "places", "{{place_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

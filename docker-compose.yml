@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: travel_planner
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d travel_planner"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: development
+      LOG_LEVEL: INFO
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/travel_planner
+      REDIS_URL: redis://redis:6379/0
+      ARTIC_BASE_URL: https://api.artic.edu/api/v1
+      BASIC_AUTH_USER: admin
+      BASIC_AUTH_PASS: changeme
+      CORS_ORIGINS: "*"
+    command:
+      [
+        "sh",
+        "-c",
+        "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000",
+      ]
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
